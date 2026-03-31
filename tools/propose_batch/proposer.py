@@ -16,6 +16,8 @@ from .ga import (
 
 __all__ = ["check_guardrails", "is_safe_mode", "propose_batch"]
 
+# BO proposer is imported lazily inside propose_batch to keep bayes_opt optional.
+
 
 def check_guardrails(
     ctx: Dict[str, Any],
@@ -58,8 +60,20 @@ def propose_batch(
     policy: Dict[str, Any],
     batch_size: int = 8,
     seed: int | None = None,
+    mode: str = "ga",
 ) -> List[Dict[str, Any]]:
-    """Propose a batch of cases using mutation + exploration."""
+    """Propose a batch of cases.
+
+    Parameters
+    ----------
+    mode:
+        ``"ga"`` (default) — mutation + exploration genetic algorithm.
+        ``"bo"`` — Bayesian Optimisation warm-started from submission history.
+    """
+    if mode == "bo":
+        from .bo import propose_batch_bo
+        return propose_batch_bo(ctx, policy, batch_size=batch_size, seed=seed)
+
     rng = _rng(seed)
     safe = is_safe_mode(ctx, policy)
 

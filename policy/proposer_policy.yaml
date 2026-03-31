@@ -113,6 +113,20 @@ safe_mode:
     # - "input.rotating_ellipse"
     - "input.W7-X_without_coil_ripple_beta0p05_d23p4_tm"
 
+# --- Bayesian Optimisation proposer settings ---
+# Used when --mode bo is passed to propose_batch (or proposer_mode: "bo" in code).
+# The BO proposer warm-starts a GP from existing submissions, then uses an
+# acquisition function to suggest the next batch sequentially (with hallucination
+# to fill the batch without repeats).
+bo_params:
+  # Acquisition function: "ucb" (Upper Confidence Bound, default),
+  # "ei" (Expected Improvement), or "poi" (Probability of Improvement).
+  acquisition: "ucb"
+  kappa: 2.576          # UCB exploration weight (higher = more exploration)
+  xi: 0.0               # EI/POI exploration offset
+  min_history: 5        # Min feasible runs needed before BO activates (else GA fallback)
+  # target_surface: null  # null = auto-select most-explored surface from exploration.surfaces
+
 # --- LLM proposer settings ---
 # Controls the context-aware LLM proposer (--llm flag).
 # The LLM receives domain context docs (surface catalog, optimization guide,

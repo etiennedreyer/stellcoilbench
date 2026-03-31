@@ -71,9 +71,15 @@ def main() -> int:  # pragma: no cover
         help="Print proposed cases to stdout without writing files.",
     )
     parser.add_argument(
+        "--mode",
+        choices=["ga", "bo", "llm"],
+        default="ga",
+        help="Proposer mode: 'ga' (default), 'bo' (Bayesian Optimisation), or 'llm'.",
+    )
+    parser.add_argument(
         "--llm",
         action="store_true",
-        help="Use LLM proposer (direct mode; requires KB_LLM_* env vars).",
+        help="Use LLM proposer (direct mode; requires KB_LLM_* env vars). Equivalent to --mode llm.",
     )
     parser.add_argument(
         "--verify-llm",
@@ -138,7 +144,8 @@ def main() -> int:  # pragma: no cover
             return 1
 
     reasoning_history_path = args.policy.parent / "llm_reasoning_history.json"
-    if args.llm:
+    mode = "llm" if args.llm else args.mode
+    if mode == "llm":
         cases = propose_batch_llm_direct(
             ctx,
             policy,
@@ -147,11 +154,10 @@ def main() -> int:  # pragma: no cover
             reasoning_history_path=reasoning_history_path,
         )
     else:
-        cases = propose_batch(ctx, policy, batch_size=args.batch_size, seed=args.seed)
+        cases = propose_batch(ctx, policy, batch_size=args.batch_size, seed=args.seed, mode=mode)
 
     if args.dry_run:
-        if args.llm:
-            print("Proposer: LLM (direct)", file=sys.stderr)
+        print(f"Proposer: {mode}", file=sys.stderr)
         print(json.dumps(cases, indent=2))
         return 0
 
